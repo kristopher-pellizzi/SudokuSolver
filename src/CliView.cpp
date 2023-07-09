@@ -75,7 +75,10 @@ void CliView::draw_cell_line(unsigned line_idx) const{
     line << V_LINE;
 
     for (int i = 1; i < grid_width; ++i){
-        line << grid[line_idx][i - 1];
+        if (grid[line_idx][i - 1] != 0)
+            line << grid[line_idx][i - 1];
+        else 
+            line << " ";
         
         if (i % block_width == 0)
             line << V_LINE;
@@ -83,7 +86,12 @@ void CliView::draw_cell_line(unsigned line_idx) const{
             line << LIGHT_V_LINE;
     }
 
-    line << grid[line_idx][grid_width - 1] << V_LINE;
+    if (grid[line_idx][grid_width - 1] != 0)
+        line << grid[line_idx][grid_width - 1];
+    else
+        line << " ";
+
+    line << V_LINE;
     cout << line.str() << endl;
 }
 
