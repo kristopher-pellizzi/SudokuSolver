@@ -1,0 +1,6 @@
+obj/**
+solver
+cli_test
+init.txt
+**/.DS_Store
+github_push_token.txt
