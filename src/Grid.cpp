@@ -9,7 +9,7 @@ using std::endl;
 Grid::Grid(unsigned block_width) : block_width(block_width), grid_width(block_width * block_width) {
     unsigned total_size = grid_width * grid_width;
 
-    grid = (unsigned*) calloc(total_size, sizeof(unsigned));
+    grid = (Cell*) calloc(total_size, sizeof(Cell));
 }
 
 unsigned Grid::get_block_width(){
@@ -34,7 +34,7 @@ unsigned Grid::get(unsigned x, unsigned y) const{
     if (check_coordinates(x, y) == -1)
         return 0;
 
-    return grid[x * grid_width + y];
+    return grid[x * grid_width + y].get();
 }
 
 void Grid::set(unsigned x, unsigned y, unsigned val){
@@ -59,6 +59,6 @@ void Grid::init(){
     init_file.close();
 }
 
-unsigned* Grid::operator[](unsigned idx) const{
+Cell* Grid::operator[](unsigned idx) const{
     return grid + idx * grid_width;
 }

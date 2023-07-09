@@ -1,11 +1,13 @@
 #ifndef GRID
 #define GRID
 
+#include "Cell.h"
+
 class Grid {
     private:
         const unsigned block_width;
         const unsigned grid_width;
-        unsigned* grid;
+        Cell* grid;
 
         int check_coordinates(unsigned x, unsigned y) const;
 
@@ -18,7 +20,7 @@ class Grid {
         void set(unsigned x, unsigned y, unsigned val);
         void init();
 
-        unsigned* operator[](unsigned idx) const;
+        Cell* operator[](unsigned idx) const;
 };
 
 #endif //GRID
