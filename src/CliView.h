@@ -1,6 +1,7 @@
 #ifndef CLIVIEW
 #define CLIVIEW
 
+#include "View.h"
 #include "Grid.h"
 #include <string>
 
@@ -33,7 +34,7 @@ extern const string LIGHT_V_LINE;
 extern const string LIGHT_CROSS;
 
 
-class CliView {
+class CliView : public View {
     private:
         Grid& grid;
         unsigned grid_width;
@@ -46,8 +47,12 @@ class CliView {
 
     public:
         CliView(Grid& grid);
-        
-        void draw() const;
+
+        void draw() const override;
+        void print_constraints() const override;
+        void message(string msg) const override;
+        void warning(string wrn) const override;
+        void error(string err) const override;
 };
 
 #endif //CLIVIEW

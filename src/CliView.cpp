@@ -2,9 +2,11 @@
 #include <iostream>
 #include <sstream>
 #include <string>
+#include <set>
 
 using std::endl;
 using std::cout;
+using std::cerr;
 
 const string TL_ANGLE = "\u250f";
 const string TR_ANGLE = "\u2513";
@@ -143,4 +145,32 @@ void CliView::draw() const{
     
     draw_cell_line(grid_width - 1);
     draw_bottom_line();
+}
+
+void CliView::print_constraints() const{
+    unsigned idx_limit = grid_width * grid_width;
+
+    for(unsigned i = 0; i < idx_limit; ++i){
+        unsigned row_idx = i / grid_width;
+        unsigned col_idx = i % grid_width;
+        std::set<unsigned>& available_vals = grid[row_idx][col_idx].get_available_vals();
+        cout << row_idx << "; " << col_idx << ": " << endl;
+        cout << "SIZE: " << available_vals.size() << endl;
+        for(auto iter = available_vals.begin(); iter != available_vals.end(); ++iter){
+            cout << "\t" << *iter << endl;
+        }
+    }
+}
+
+void CliView::message(string msg) const{
+    cout << "[*] " << msg << endl;
+}
+
+void CliView::warning(string wrn) const{
+    cout << "[!] " << wrn << endl;
+}
+
+void CliView::error(string err) const{
+    cerr << "[!!!] " << err << endl;
+    exit(1);
 }
