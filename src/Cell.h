@@ -10,6 +10,8 @@ class Cell {
 
     public:
         Cell(unsigned val, unsigned max_val);
+        Cell(const Cell& c);
+        Cell& operator=(const Cell& c);
 
         unsigned get() const;
         int set(unsigned val);

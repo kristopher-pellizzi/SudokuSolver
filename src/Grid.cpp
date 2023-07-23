@@ -30,6 +30,7 @@ unsigned Grid::get_grid_width(){
 int Grid::check_coordinates(unsigned x, unsigned y) const{
     if(x >= grid_width|| y >= grid_width){
         std::stringstream sstream;
+        sstream << "Invalid coordinates (" << x << ", " << y << ")" << std::endl;
         sstream << "Cell coordinates must be integers from 0 to " << grid_width - 1; 
         v->warning(sstream.str());
         return -1;
@@ -45,12 +46,20 @@ unsigned Grid::get(unsigned x, unsigned y) const{
     return grid[x * grid_width + y].get();
 }
 
-unsigned Grid::get(Coordinates c) const{
+unsigned Grid::get(Coordinates& c) const{
     return get(c.get_x(), c.get_y());
 }
 
+bool Grid::is_filled(unsigned x, unsigned y) const{
+    return get(x, y) != 0;
+}
+
+bool Grid::is_filled(Coordinates& c) const{
+    return is_filled(c.get_x(), c.get_y());
+}
+
 void Grid::constrain_line(unsigned x, unsigned val){
-    unsigned row_idx = x * grid_width;
+    unsigned row_idx = x;
 
     for (unsigned col_idx = 0; col_idx < grid_width; ++col_idx){
         grid[row_idx * grid_width + col_idx].constrain(val);
@@ -64,15 +73,15 @@ void Grid::constrain_column(unsigned y, unsigned val){
 }
 
 void Grid::constrain_block(unsigned x, unsigned y, unsigned val){
-    unsigned block_row_idx = (x / block_width) * block_width;
+    unsigned block_row_idx = x / block_width;
     unsigned block_col_idx = y / block_width;
-    unsigned row_idx = block_row_idx * block_width;
-    unsigned row_idx_limit = row_idx + block_width;
-    unsigned col_idx = block_col_idx * block_width;
-    unsigned col_idx_limit = col_idx + block_width;
+    unsigned row_idx_init = block_row_idx * block_width;
+    unsigned row_idx_limit = row_idx_init + block_width;
+    unsigned col_idx_init = block_col_idx * block_width;
+    unsigned col_idx_limit = col_idx_init + block_width;
 
-    for (; row_idx < row_idx_limit; ++row_idx){
-        for (; col_idx < col_idx_limit; ++col_idx){
+    for (unsigned row_idx = row_idx_init; row_idx < row_idx_limit; ++row_idx){
+        for (unsigned col_idx = col_idx_init; col_idx < col_idx_limit; ++col_idx){
             grid[row_idx * grid_width + col_idx].constrain(val);
         }
     }
@@ -111,11 +120,12 @@ void Grid::set(unsigned x, unsigned y, unsigned val){
     ++filled_cells;
 }
 
-void Grid::set(Coordinates c, unsigned val){
+void Grid::set(Coordinates& c, unsigned val){
     set(c.get_x(), c.get_y(), val);
 }
 
 void Grid::init_constraints(){
+    v->message("Initializing grid constraints...");
     unsigned idx_limit = grid_width * grid_width;
 
     for (unsigned i = 0; i < idx_limit; ++i){
@@ -131,6 +141,7 @@ void Grid::init_constraints(){
 }
 
 void Grid::init(){
+    v->message("Initializing grid...");
     std::ifstream init_file("init.txt");
 
     for (int i = 0; i < grid_width; ++i){
@@ -157,7 +168,7 @@ std::set<unsigned>& Grid::get_available_vals(unsigned x, unsigned y){
     return grid[x * grid_width + y].get_available_vals();
 }
 
-std::set<unsigned>& Grid::get_available_vals(Coordinates c){
+std::set<unsigned>& Grid::get_available_vals(Coordinates& c){
     return grid[c.get_x() * grid_width + c.get_y()].get_available_vals();
 }
 
@@ -173,12 +184,13 @@ Cell* Grid::operator[](unsigned idx) const{
 // Simulate add constraints methods that return the smallest number of available values 
 // For each of the constrained cells
 unsigned Grid::simulate_constrain_line(unsigned x, unsigned val){
-    unsigned row_idx = x * grid_width;
+    unsigned row_idx = x;
     unsigned min = UINT_MAX;
 
     for (unsigned col_idx = 0; col_idx < grid_width; ++col_idx){
         std::set<unsigned>& available_vals = grid[row_idx * grid_width + col_idx].get_available_vals();
-        unsigned num_vals = available_vals.size();
+
+        unsigned num_vals = is_filled(row_idx, col_idx) ? 1 : available_vals.size();
 
         if (available_vals.find(val) != available_vals.end()){
             --num_vals;
@@ -196,7 +208,7 @@ unsigned Grid::simulate_constrain_column(unsigned y, unsigned val){
 
     for (unsigned idx = 0; idx < grid_width; ++idx){
         std::set<unsigned>& available_vals = grid[idx * grid_width + y].get_available_vals();
-        unsigned num_vals = available_vals.size();
+        unsigned num_vals = is_filled(idx, y) ? 1 : available_vals.size();
 
         if (available_vals.find(val) != available_vals.end()){
             --num_vals;
@@ -210,18 +222,18 @@ unsigned Grid::simulate_constrain_column(unsigned y, unsigned val){
 }
 
 unsigned Grid::simulate_constrain_block(unsigned x, unsigned y, unsigned val){
-    unsigned block_row_idx = (x / block_width) * block_width;
+    unsigned block_row_idx = x / block_width;
     unsigned block_col_idx = y / block_width;
-    unsigned row_idx = block_row_idx * block_width;
-    unsigned row_idx_limit = row_idx + block_width;
-    unsigned col_idx = block_col_idx * block_width;
-    unsigned col_idx_limit = col_idx + block_width;
+    unsigned row_idx_init = block_row_idx * block_width;
+    unsigned row_idx_limit = row_idx_init + block_width;
+    unsigned col_idx_init = block_col_idx * block_width;
+    unsigned col_idx_limit = col_idx_init + block_width;
     unsigned min = UINT_MAX;
 
-    for (; row_idx < row_idx_limit; ++row_idx){
-        for (; col_idx < col_idx_limit; ++col_idx){
+    for (unsigned row_idx = row_idx_init; row_idx < row_idx_limit; ++row_idx){
+        for (unsigned col_idx = col_idx_init; col_idx < col_idx_limit; ++col_idx){
             std::set<unsigned>& available_vals = grid[row_idx * grid_width + col_idx].get_available_vals();
-            unsigned num_vals = available_vals.size();
+            unsigned num_vals = is_filled(row_idx, col_idx) ? 1 : available_vals.size();
 
             if (available_vals.find(val) != available_vals.end()){
                 --num_vals;

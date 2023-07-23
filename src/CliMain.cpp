@@ -5,9 +5,9 @@
 int main(){
     unsigned block_width = 3;
     Grid grid(block_width);    
-    grid.init();
     CliView v(grid);
     grid.set_view(v);
+    grid.init();
     v.draw();
 
     Solver solver(grid, v);

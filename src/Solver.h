@@ -12,19 +12,20 @@ class Solver{
     private:
         Grid& grid;
         View& v;
-        std::stack<Checkpoint> checkpoints;
+        std::stack<Checkpoint*> checkpoints;
         std::set<Coordinates> attempted_coords;
         std::set<unsigned> attempted_vals;
         Coordinates* selected_cell;
         bool checkpoint_restored;
 
+        Coordinates select_cell();
+        unsigned select_val(Coordinates& c);
         void restore_last_checkpoint();
 
     public:
         Solver(Grid& grid, View& view);
 
-        Coordinates select_cell();
-        unsigned select_val(Coordinates c);
+        
         void solve();
 };
 

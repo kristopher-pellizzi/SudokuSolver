@@ -14,37 +14,48 @@ void Solver::restore_last_checkpoint(){
         v.error(sstream.str());
     }
 
-    Checkpoint& checkpoint = checkpoints.top();
-    checkpoint.restore(grid);
+    Checkpoint* checkpoint = checkpoints.top();
+    checkpoint->restore(grid);
     attempted_coords.clear();
     attempted_vals.clear();
-    attempted_coords.insert(checkpoint.attempted_coords.begin(), checkpoint.attempted_coords.end());
-    attempted_vals.insert(checkpoint.attempted_vals.begin(), checkpoint.attempted_vals.end());
+    attempted_coords.insert(checkpoint->attempted_coords.begin(), checkpoint->attempted_coords.end());
+    attempted_vals.insert(checkpoint->attempted_vals.begin(), checkpoint->attempted_vals.end());
 
-    if (checkpoint.selected_coord == NULL)
+    if (checkpoint->selected_coord == NULL)
         selected_cell = NULL;
     else
-        selected_cell = new Coordinates(*checkpoint.selected_coord);
+        selected_cell = new Coordinates(*(checkpoint->selected_coord));
 
     checkpoints.pop();
+    delete checkpoint;
     checkpoint_restored = true;
 }
 
 Coordinates Solver::select_cell() {
     unsigned grid_width = grid.get_grid_width();
-    Coordinates selected;
+    Coordinates selected(0, 0);
     unsigned min_available_vals = UINT_MAX;
 
+    /*
+        If selected_cell is not NULL, then the last restored checkpoint was stored while choosing
+        a value for that cell.
+        Select the same cell, a new value will be attempted
+    */
     if (selected_cell != NULL){
         return *selected_cell;
     }
 
+    /*
+        If all the cells have been attempted without success, this is an infeasible solution.
+        Try restoring the last checkpoint.
+    */
     if (attempted_coords.size() == grid_width * grid_width){
         std::stringstream sstream;
         sstream << "All coords have been attempted. Restoring last checkpoint...";
         v.message(sstream.str());
 
         restore_last_checkpoint();
+        return selected;
     }
 
     for (unsigned i = 0; i < grid_width; ++i){
@@ -57,16 +68,18 @@ Coordinates Solver::select_cell() {
 
             std::set<unsigned>& available_vals = grid.get_available_vals(i, j);
 
-            if(available_vals.size() <= 0){
+            /*
+                If there's any cell with no available values, this solution is infeasible.
+                Try restoring the last checkpoint and proceed from there
+            */
+            if(available_vals.size() <= 0 && !grid.is_filled(i, j)){
                 std::stringstream sstream;
                 sstream << "Cell " << c.to_string() << " has no more available values" << std::endl;
                 sstream << "Current state is unsolvable. Restoring last checkpoint...";
                 v.message(sstream.str());
 
                 restore_last_checkpoint();                
-                // Restart looking for a new cell
-                i = 0;
-                j = 0;
+                return selected;
             }
 
             // Try to find the most constrained cell
@@ -77,25 +90,43 @@ Coordinates Solver::select_cell() {
         }
     }
 
-    // If available vals size is > 1, create and push a new checkpoint. Store in the checkpoint the current coords as attempted
+    /*
+        If available vals size is > 1, create and push a new checkpoint. 
+        Store in the checkpoint the current coords as attempted.
+        Note that if available vals size is 1, there's no need for a checkpoint.
+        Indeed, that would be a forced value for that cell.
+        If no solution is found setting that value to this cell, the grid has no feasible solutions
+    */
+    std::stringstream sstream;
     if (min_available_vals > 1){
-        Checkpoint checkpoint(grid);
-        checkpoint.attempted_coords.insert(selected);
+        sstream << "Creating checkpoint after choosing cell " << selected.to_string();
+        v.message(sstream.str());
+        Checkpoint* checkpoint = new Checkpoint(grid);
+        checkpoint->attempted_coords.insert(selected);
         checkpoints.push(checkpoint);
     }
 
-    std::stringstream sstream;
+    sstream.str("");
     sstream << "Selected most constrained cell (" << min_available_vals << " constraints) with coordinates " << selected.to_string();
     v.message(sstream.str());
 
     return selected;
 }
 
-unsigned Solver::select_val(Coordinates c) {
+unsigned Solver::select_val(Coordinates& c) {
     unsigned max = 0;
     unsigned selected_val = 0;
 
     std::set<unsigned>& available_vals = grid.get_available_vals(c);
+
+    if (attempted_vals.size() == available_vals.size()){
+        std::stringstream sstream;
+        sstream << "All values have been attempted for this cell. Restoring last checkpoint...";
+        v.message(sstream.str());
+
+        restore_last_checkpoint();
+        return selected_val;
+    }
 
     if (available_vals.size() == 1){
         selected_val = *available_vals.begin();
@@ -106,7 +137,20 @@ unsigned Solver::select_val(Coordinates c) {
     }
 
     for(auto iter = available_vals.begin(); iter != available_vals.end(); ++iter){
+        if (attempted_vals.find(*iter) != attempted_vals.end())
+            continue;
+            
         unsigned min_constraints_num = grid.simulate_add_constraint(c.get_x(), c.get_y(), *iter);
+
+        if (min_constraints_num == 0){
+            std::stringstream sstream;
+            sstream << "By setting value " << *iter << " to this cell, another cell would have no more available values" << std::endl;
+            sstream << "Restoring last checkpoint...";
+            v.message(sstream.str());
+
+            restore_last_checkpoint();
+            return selected_val;
+        }
 
         if (min_constraints_num >= max){
             max = min_constraints_num;
@@ -114,12 +158,16 @@ unsigned Solver::select_val(Coordinates c) {
         }
     }
 
-    // TODO: Create and push a new checkpoint. Remove the current value from available values in the checkpoint
-    // Store in the checkpoint the current iterator
-    // so that we can restore this method from the subsequent value.
-    // If there are no more values available, pop another checkpoint
-
+    // Create and push a new checkpoint. Remove the current value from available values in the checkpoint
     std::stringstream sstream;
+    sstream << "Creating checkpoint after choosing value " << selected_val;
+    v.message(sstream.str());
+    Checkpoint* checkpoint = new Checkpoint(grid);
+    checkpoint->attempted_vals.insert(selected_val);
+    checkpoint->selected_coord = new Coordinates(c);
+    checkpoints.push(checkpoint);
+
+    sstream.str("");
     sstream << "Selected value " << selected_val << " as it is the less constraining value";
     v.message(sstream.str());
 
@@ -127,18 +175,42 @@ unsigned Solver::select_val(Coordinates c) {
 }
 
 void Solver::solve() {
+    std::stringstream sstream;
+    sstream << "Start solving the grid...";
+    v.message(sstream.str());
+
     while (!grid.is_completed()){
         Coordinates&& c = select_cell();
-        unsigned val = select_val(c);
-        // If a checkpoint was restored, no cell must be set
+        unsigned val = 0;
+
+        /*
+            Select a value for the cell only if the cell selection did not 
+            perform a checkpoint restore
+        */
+        if (!checkpoint_restored)
+            val = select_val(c);
+
+        // If a checkpoint was restored during cell or value selection, no cell must be set
         if (!checkpoint_restored){
             grid.set(c, val);
             attempted_coords.clear();
             attempted_vals.clear();
+            if (selected_cell != NULL){
+                delete selected_cell;
+                selected_cell = NULL;
+            }
         }
+
+        checkpoint_restored = false;
         v.draw();
 
         std::string s;
-        std::cin >> s;
+        //std::cin >> s;
     }
+
+    sstream.str("");
+    sstream << "Grid has been completely filled." << std::endl;
+    sstream << "Here's the solution" << std::endl;
+    v.message(sstream.str());
+    v.draw();
 }

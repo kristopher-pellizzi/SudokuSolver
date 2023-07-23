@@ -35,12 +35,14 @@ class Grid {
         unsigned get_block_width();
         unsigned get_grid_width();
         unsigned get(unsigned x, unsigned y) const;
+        bool is_filled(unsigned x, unsigned y) const;
+        bool is_filled(Coordinates& c) const;
         void set(unsigned x, unsigned y, unsigned val);
-        unsigned get(Coordinates c) const;
-        void set(Coordinates c, unsigned val);
+        unsigned get(Coordinates& c) const;
+        void set(Coordinates& c, unsigned val);
         void init();
         std::set<unsigned>& get_available_vals(unsigned x, unsigned y);
-        std::set<unsigned>& get_available_vals(Coordinates c);
+        std::set<unsigned>& get_available_vals(Coordinates& c);
         bool is_completed() const;
         unsigned simulate_add_constraint(unsigned x, unsigned y, unsigned val);
 

@@ -162,15 +162,58 @@ void CliView::print_constraints() const{
     }
 }
 
+std::deque<string> CliView::split_on_newlines(string s) const{
+    string curr(s);
+    size_t pos = curr.find("\n");
+    std::deque<string> ret;
+
+    if (pos == std::string::npos){
+        ret.push_back(s);
+        return ret;
+    }
+
+    while (pos != std::string::npos){
+        string new_s = curr.substr(0, pos);
+        ret.push_back(new_s);
+        curr = curr.substr(pos + 1);
+        pos = curr.find("\n");
+    }
+
+    pos = curr.size();
+    if(pos > 0)
+        ret.push_back(curr.substr(0, pos));
+
+    return ret;
+}
+
 void CliView::message(string msg) const{
-    cout << "[*] " << msg << endl;
+    std::deque<string> l = split_on_newlines(msg);
+    auto fst = l.begin();
+    cout << "[*] " << *fst << endl;
+
+    for (auto iter = ++fst; iter != l.end(); ++iter){
+        cout << "    " << *iter << endl;
+    }
 }
 
 void CliView::warning(string wrn) const{
-    cout << "[!] " << wrn << endl;
+    std::deque<string> l = split_on_newlines(wrn);
+    auto fst = l.begin();
+    cout << "[!] " << *fst << endl;
+
+    for (auto iter = ++fst; iter != l.end(); ++iter){
+        cout << "    " << *iter << endl;
+    }
 }
 
 void CliView::error(string err) const{
-    cerr << "[!!!] " << err << endl;
+    std::deque<string> l = split_on_newlines(err);
+    auto fst = l.begin();
+    cout << "[!!!] " << *fst << endl;
+
+    for (auto iter = ++fst; iter != l.end(); ++iter){
+        cout << "      " << *iter << endl;
+    }
+
     exit(1);
 }

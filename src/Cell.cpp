@@ -2,10 +2,24 @@
 #include <sstream>
 
 Cell::Cell(unsigned val, unsigned max_val) : val(val) {
+    if (val != 0)
+        return;
+
     for(unsigned i = 1; i <= max_val; ++i){
-        if(i != val)
-            available_vals.insert(i);
+        available_vals.insert(i);
     }
+}
+
+Cell::Cell(const Cell& c){
+    val = c.val;
+    available_vals = std::set<unsigned>(c.available_vals.begin(), c.available_vals.end());
+}
+
+Cell& Cell::operator=(const Cell& c){
+    val = c.val;
+    available_vals = std::set<unsigned>(c.available_vals.begin(), c.available_vals.end());
+
+    return *this;
 }
 
 unsigned Cell::get() const {

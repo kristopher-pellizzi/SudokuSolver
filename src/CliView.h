@@ -3,6 +3,7 @@
 
 #include "View.h"
 #include "Grid.h"
+#include <deque>
 #include <string>
 
 using std::string;
@@ -44,6 +45,7 @@ class CliView : public View {
         void draw_bottom_line() const;
         void draw_cell_line(unsigned line_idx) const;
         void draw_cell_separator(unsigned line_idx) const;
+        std::deque<string> split_on_newlines(string s) const;
 
     public:
         CliView(Grid& grid);
