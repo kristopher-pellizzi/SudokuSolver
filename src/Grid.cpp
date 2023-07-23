@@ -142,7 +142,7 @@ void Grid::init_constraints(){
 
 void Grid::init(){
     v->message("Initializing grid...");
-    std::ifstream init_file("init.txt");
+    std::ifstream init_file("grids/beginner1.txt");
 
     for (int i = 0; i < grid_width; ++i){
         for (int j = 0; j < grid_width; ++j){
