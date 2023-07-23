@@ -29,7 +29,7 @@ bool Cell::operator<(const Cell& other) const{
     return val < other.val;
 }
 
-bool Cell::operator!=(const int& other) const{
+bool Cell::operator!=(const unsigned& other) const{
     return val != other;
 }
 

@@ -15,7 +15,7 @@ class Cell {
         int set(unsigned val);
         void operator=(unsigned val);
         bool operator<(const Cell& other) const;
-        bool operator!=(const int& other) const;
+        bool operator!=(const unsigned& other) const;
         friend std::ostream& operator<<(std::ostream& stream, Cell& elem);
         // Removes val from available_vals
         void constrain(unsigned val);

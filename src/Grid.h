@@ -7,6 +7,8 @@
 #include "View.h"
 
 class Grid {
+    friend class Checkpoint;
+
     private:
         const unsigned block_width;
         const unsigned grid_width;
