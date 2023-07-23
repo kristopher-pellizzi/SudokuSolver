@@ -21,6 +21,7 @@ class Solver{
         Coordinates select_cell();
         unsigned select_val(Coordinates& c);
         void restore_last_checkpoint();
+        void clean();
 
     public:
         Solver(Grid& grid, View& view);

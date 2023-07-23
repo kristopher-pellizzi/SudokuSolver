@@ -174,6 +174,14 @@ unsigned Solver::select_val(Coordinates& c) {
     return selected_val;
 }
 
+void Solver::clean(){
+    while (checkpoints.size() > 0){
+        Checkpoint* c = checkpoints.top();
+        delete c;
+        checkpoints.pop();
+    }
+}
+
 void Solver::solve() {
     std::stringstream sstream;
     sstream << "Start solving the grid...";
