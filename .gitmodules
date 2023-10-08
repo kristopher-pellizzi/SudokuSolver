@@ -1,0 +1,3 @@
+[submodule "CppArgumentParser"]
+	path = CppArgumentParser
+	url = https://github.com/kristopher-pellizzi/CppArgumentParser
