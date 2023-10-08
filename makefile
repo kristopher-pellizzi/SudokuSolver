@@ -25,10 +25,10 @@ $(OBJ_DIR):
 	$(MKDIR) $@
 	@echo "Created folder $@"
 
-$(OBJ_DIR)CliMain.o: $(SRC_DIR)CliMain.cpp cpp_arg_parser | $(OBJ_DIR)
+$(OBJ_DIR)CliMain.o: $(SRC_DIR)CliMain.cpp $(ROOT_DIR)/CppArgumentParser/lib/libArgumentParser.so | $(OBJ_DIR)
 	$(CXX) $(COMP_FLAGS) -I$(ROOT_DIR)/CppArgumentParser/include $< -o $@
 
-$(OBJ_DIR)CliTest.o: $(SRC_DIR)CliTest.cpp cpp_arg_parser | $(OBJ_DIR)
+$(OBJ_DIR)CliTest.o: $(SRC_DIR)CliTest.cpp $(ROOT_DIR)/CppArgumentParser/lib/libArgumentParser.so | $(OBJ_DIR)
 	$(CXX) $(COMP_FLAGS) -I$(ROOT_DIR)/CppArgumentParser/include $< -o $@
 
 $(OBJ_DIR)Grid.o: $(SRC_DIR)Grid.cpp $(SRC_DIR)Grid.h | $(OBJ_DIR)
@@ -52,8 +52,7 @@ $(OBJ_DIR)Solver.o: $(SRC_DIR)Solver.cpp $(SRC_DIR)Solver.h | $(OBJ_DIR)
 $(OBJ_DIR)Checkpoint.o: $(SRC_DIR)Checkpoint.cpp $(SRC_DIR)Checkpoint.h | $(OBJ_DIR)
 	$(CXX) $(COMP_FLAGS) $< -o $@
 
-.PHONY: cpp_arg_parser
-cpp_arg_parser: 
+$(ROOT_DIR)/CppArgumentParser/lib/libArgumentParser.so:
 	$(MAKE) -C CppArgumentParser
 
 solver: $(OBJ_DIR)CliMain.o $(OBJ_DIR)Checkpoint.o $(OBJ_DIR)Solver.o $(OBJ_DIR)Grid.o $(OBJ_DIR)View.o $(OBJ_DIR)CliView.o $(OBJ_DIR)Cell.o $(OBJ_DIR)Coordinates.o
