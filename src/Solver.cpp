@@ -4,7 +4,7 @@
 #include "CliView.h"
 #include "Solver.h"
 
-Solver::Solver(Grid& grid, View& view) : grid(grid), v(view), checkpoint_restored(false) {}
+Solver::Solver(Grid& grid, View& view) : grid(grid), v(view), selected_cell(NULL), checkpoint_restored(false) {}
 
 void Solver::restore_last_checkpoint(){
     if (checkpoints.size() <= 0){
