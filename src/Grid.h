@@ -40,7 +40,7 @@ class Grid {
         void set(unsigned x, unsigned y, unsigned val);
         unsigned get(Coordinates& c) const;
         void set(Coordinates& c, unsigned val);
-        void init();
+        void init(string& grid_path);
         std::set<unsigned>& get_available_vals(unsigned x, unsigned y);
         std::set<unsigned>& get_available_vals(Coordinates& c);
         bool is_completed() const;
