@@ -1,6 +1,7 @@
 #include "CliView.h"
 #include "Grid.h"
 #include "Solver.h"
+#include "ArgumentParser.h"
 
 int main(){
     unsigned block_width = 3;
