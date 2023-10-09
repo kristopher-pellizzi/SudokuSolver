@@ -22,6 +22,7 @@ class Cell {
         // Removes val from available_vals
         void constrain(unsigned val);
         std::set<unsigned>& get_available_vals();
+        void set_hidden_single(unsigned val);
 };
 
 #endif // CELL

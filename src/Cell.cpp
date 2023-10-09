@@ -59,3 +59,8 @@ void Cell::constrain(unsigned val){
 std::set<unsigned>& Cell::get_available_vals(){
     return available_vals;
 }
+
+void Cell::set_hidden_single(unsigned val){
+    available_vals.clear();
+    available_vals.insert(val);
+}

@@ -42,9 +42,13 @@ class Grid {
         void set(Coordinates& c, unsigned val);
         void init(string& grid_path);
         std::set<unsigned>& get_available_vals(unsigned x, unsigned y);
-        std::set<unsigned>& get_available_vals(Coordinates& c);
+        std::set<unsigned>& get_available_vals(const Coordinates& c);
         bool is_completed() const;
         unsigned simulate_add_constraint(unsigned x, unsigned y, unsigned val);
+        std::set<Coordinates> get_row_adjacent_cells(const Coordinates& c);
+        std::set<Coordinates> get_col_adjacent_cells(const Coordinates& c);
+        std::set<Coordinates> get_block_adjacent_cells(const Coordinates& c);
+        void set_hidden_single(const Coordinates& c, unsigned val);
 
         Cell* operator[](unsigned idx) const;
 };

@@ -18,6 +18,11 @@ class Solver{
         Coordinates* selected_cell;
         bool checkpoint_restored;
 
+        Coordinates* do_search_hidden_single(const Coordinates& c, std::set<Coordinates>& adjacent_cells);
+        Coordinates* search_row_hidden_single(const Coordinates& c);
+        Coordinates* search_col_hidden_single(const Coordinates& c);
+        Coordinates* search_block_hidden_single(const Coordinates& c);
+        Coordinates* search_hidden_single();
         Coordinates select_cell();
         unsigned select_val(Coordinates& c);
         void restore_last_checkpoint();

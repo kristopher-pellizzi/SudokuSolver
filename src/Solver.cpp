@@ -31,6 +31,69 @@ void Solver::restore_last_checkpoint(){
     checkpoint_restored = true;
 }
 
+Coordinates* Solver::do_search_hidden_single(const Coordinates& c, std::set<Coordinates>& adjacent_cells){
+    std::set<unsigned> adjacent_cells_available_vals;
+
+    for (auto iter = adjacent_cells.begin(); iter != adjacent_cells.end(); ++iter){
+        std::set<unsigned>& available_vals = grid.get_available_vals(*iter);
+        if (available_vals.size() > 0)
+            adjacent_cells_available_vals.insert(available_vals.begin(), available_vals.end());
+    }
+
+    std::set<unsigned> current_available_vals = grid.get_available_vals(c);
+    for (auto iter = adjacent_cells_available_vals.begin(); iter != adjacent_cells_available_vals.end(); ++iter){
+        current_available_vals.erase(*iter);
+    }
+
+    if (current_available_vals.size() == 1){
+        grid.set_hidden_single(c, *(current_available_vals.begin()));
+        return new Coordinates(c);
+    }
+
+    return NULL;
+}
+
+Coordinates* Solver::search_row_hidden_single(const Coordinates& c){
+    std::set<Coordinates> row_adjacent_cells = grid.get_row_adjacent_cells(c);
+    
+    return do_search_hidden_single(c, row_adjacent_cells);
+}
+
+Coordinates* Solver::search_col_hidden_single(const Coordinates& c){
+    std::set<Coordinates> col_adjacent_cells = grid.get_col_adjacent_cells(c);
+
+    return do_search_hidden_single(c, col_adjacent_cells);
+}
+
+Coordinates* Solver::search_block_hidden_single(const Coordinates& c){
+    std::set<Coordinates> block_adjacent_cells = grid.get_block_adjacent_cells(c);
+    return do_search_hidden_single(c, block_adjacent_cells);
+}
+
+Coordinates* Solver::search_hidden_single(){
+    unsigned grid_width = grid.get_grid_width();
+    Coordinates* ret = NULL;
+
+    for (unsigned i = 0; i < grid_width; ++i){
+        for (unsigned j = 0; j < grid_width; ++j){
+            Coordinates c(i, j);
+
+            ret = search_row_hidden_single(c);
+
+            if (ret == NULL)
+                ret = search_col_hidden_single(c);
+
+            if (ret == NULL)
+                ret = search_block_hidden_single(c);
+
+            if (ret != NULL)
+                return ret;
+        }
+    }
+
+    return NULL;
+}
+
 Coordinates Solver::select_cell() {
     unsigned grid_width = grid.get_grid_width();
     Coordinates selected(0, 0);
@@ -91,6 +154,22 @@ Coordinates Solver::select_cell() {
     }
 
     /*
+        If the selected cell has more than a single available value, search the grid for possible hidden singles, i.e. cells that have more than 1 available value,
+        but that are the only cell in the block that can hold a certain value due to row, column and/or block constraints.
+    */
+    if (min_available_vals > 1){
+        Coordinates* hidden_single = search_hidden_single();
+        if (hidden_single != NULL){
+            std::stringstream sstream;
+            sstream << "Cell " << hidden_single->to_string() << " is an hidden single, so it is selected" << std::endl;
+            v.message(sstream.str());
+            selected = Coordinates(*hidden_single);
+            min_available_vals = 1;
+            delete hidden_single;
+        }
+    }
+
+    /*
         If available vals size is > 1, create and push a new checkpoint. 
         Store in the checkpoint the current coords as attempted.
         Note that if available vals size is 1, there's no need for a checkpoint.
@@ -102,6 +181,7 @@ Coordinates Solver::select_cell() {
         sstream << "Creating checkpoint after choosing cell " << selected.to_string();
         v.message(sstream.str());
         Checkpoint* checkpoint = new Checkpoint(grid);
+        checkpoint->attempted_coords.insert(attempted_coords.begin(), attempted_coords.end());
         checkpoint->attempted_coords.insert(selected);
         checkpoints.push(checkpoint);
     }
@@ -163,6 +243,7 @@ unsigned Solver::select_val(Coordinates& c) {
     sstream << "Creating checkpoint after choosing value " << selected_val;
     v.message(sstream.str());
     Checkpoint* checkpoint = new Checkpoint(grid);
+    checkpoint->attempted_vals.insert(attempted_vals.begin(), attempted_vals.end());
     checkpoint->attempted_vals.insert(selected_val);
     checkpoint->selected_coord = new Coordinates(c);
     checkpoints.push(checkpoint);
@@ -213,7 +294,7 @@ void Solver::solve() {
         v.draw();
 
         std::string s;
-        //std::cin >> s;
+        std::cin >> s;
     }
 
     sstream.str("");

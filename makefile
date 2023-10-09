@@ -3,7 +3,7 @@ SRC_DIR := $(ROOT_DIR)/src/
 OBJ_DIR := $(ROOT_DIR)/obj/
 MKDIR := @mkdir -p 
 CXX := g++
-COMP_FLAGS := -std=c++17 -Wall -Werror -c
+COMP_FLAGS := -std=c++17 -Wall -Werror -c $(ADD_COMP_FLAGS)
 
 .PHONY: all
 all: solver

@@ -168,7 +168,7 @@ std::set<unsigned>& Grid::get_available_vals(unsigned x, unsigned y){
     return grid[x * grid_width + y].get_available_vals();
 }
 
-std::set<unsigned>& Grid::get_available_vals(Coordinates& c){
+std::set<unsigned>& Grid::get_available_vals(const Coordinates& c){
     return grid[c.get_x() * grid_width + c.get_y()].get_available_vals();
 }
 
@@ -253,4 +253,57 @@ unsigned Grid::simulate_add_constraint(unsigned x, unsigned y, unsigned val){
     unsigned block = simulate_constrain_block(x, y, val);
 
     return std::min(std::min(line, column), block);
+}
+
+std::set<Coordinates> Grid::get_row_adjacent_cells(const Coordinates& c){
+    unsigned c_x = c.get_x();
+    unsigned c_y = c.get_y();
+    std::set<Coordinates> ret;
+
+    for (unsigned col_idx = 0; col_idx < grid_width; ++col_idx){
+        if(col_idx != c_y)
+            ret.insert(Coordinates(c_x, col_idx));
+    }
+
+    return ret;
+}
+
+std::set<Coordinates> Grid::get_col_adjacent_cells(const Coordinates& c){
+    unsigned c_x = c.get_x();
+    unsigned c_y = c.get_y();
+    std::set<Coordinates> ret;
+
+    for (unsigned idx = 0; idx < grid_width; ++idx){
+        if (idx != c_x)
+            ret.insert(Coordinates(idx, c_y));
+    }
+
+    return ret;
+}
+
+std::set<Coordinates> Grid::get_block_adjacent_cells(const Coordinates& c){
+    std::set<Coordinates> ret;
+    unsigned c_x = c.get_x();
+    unsigned c_y = c.get_y();
+
+    unsigned block_row_idx = c_x / block_width;
+    unsigned block_col_idx = c_y / block_width;
+    unsigned row_idx_init = block_row_idx * block_width;
+    unsigned row_idx_limit = row_idx_init + block_width;
+    unsigned col_idx_init = block_col_idx * block_width;
+    unsigned col_idx_limit = col_idx_init + block_width;
+
+    for (unsigned row_idx = row_idx_init; row_idx < row_idx_limit; ++row_idx){
+        for (unsigned col_idx = col_idx_init; col_idx < col_idx_limit; ++col_idx){
+            if (row_idx != c_x || col_idx != c_y){
+                ret.insert(Coordinates(row_idx, col_idx));
+            }
+        }
+    }
+
+    return ret;
+}
+
+void Grid::set_hidden_single(const Coordinates& c, unsigned val){
+    grid[c.get_x() * grid_width + c.get_y()].set_hidden_single(val);
 }
