@@ -1,7 +1,9 @@
 obj/**
 solver
+test_solver
 cli_test
 init.txt
+log.txt
 **/.DS_Store
 github_push_token.txt
 **/.vscode
