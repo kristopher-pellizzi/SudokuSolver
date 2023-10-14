@@ -49,6 +49,9 @@ $(OBJ_DIR)Coordinates.o: $(SRC_DIR)Coordinates.cpp $(SRC_DIR)Coordinates.h | $(O
 $(OBJ_DIR)Solver.o: $(SRC_DIR)Solver.cpp $(SRC_DIR)Solver.h | $(OBJ_DIR)
 	$(CXX) $(COMP_FLAGS) $< -o $@
 
+$(OBJ_DIR)TestSolver.o: $(SRC_DIR)TestSolver.cpp $(SRC_DIR)Solver.h | $(OBJ_DIR)
+	$(CXX) $(COMP_FLAGS) $< -o $@
+
 $(OBJ_DIR)Checkpoint.o: $(SRC_DIR)Checkpoint.cpp $(SRC_DIR)Checkpoint.h | $(OBJ_DIR)
 	$(CXX) $(COMP_FLAGS) $< -o $@
 
@@ -56,6 +59,10 @@ $(ROOT_DIR)/CppArgumentParser/lib/libArgumentParser.so:
 	$(MAKE) -C CppArgumentParser
 
 solver: $(OBJ_DIR)CliMain.o $(OBJ_DIR)Checkpoint.o $(OBJ_DIR)Solver.o $(OBJ_DIR)Grid.o $(OBJ_DIR)View.o $(OBJ_DIR)CliView.o $(OBJ_DIR)Cell.o $(OBJ_DIR)Coordinates.o
+	$(CXX) -L$(ROOT_DIR)/CppArgumentParser/lib -lArgumentParser $^ -o $@
+
+# Uses an alternative solver class that allows to debug checkpointing system
+test_solver: $(OBJ_DIR)CliMain.o $(OBJ_DIR)Checkpoint.o $(OBJ_DIR)TestSolver.o $(OBJ_DIR)Grid.o $(OBJ_DIR)View.o $(OBJ_DIR)CliView.o $(OBJ_DIR)Cell.o $(OBJ_DIR)Coordinates.o
 	$(CXX) -L$(ROOT_DIR)/CppArgumentParser/lib -lArgumentParser $^ -o $@
 
 # Uses an alternative main function that simply prints the grid filled with numbers

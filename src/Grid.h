@@ -37,6 +37,7 @@ class Grid {
         unsigned get(unsigned x, unsigned y) const;
         bool is_filled(unsigned x, unsigned y) const;
         bool is_filled(Coordinates& c) const;
+        unsigned get_filled_cells() const;
         void set(unsigned x, unsigned y, unsigned val);
         unsigned get(Coordinates& c) const;
         void set(Coordinates& c, unsigned val);

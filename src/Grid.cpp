@@ -58,6 +58,10 @@ bool Grid::is_filled(Coordinates& c) const{
     return is_filled(c.get_x(), c.get_y());
 }
 
+unsigned Grid::get_filled_cells() const{
+    return filled_cells;
+}
+
 void Grid::constrain_line(unsigned x, unsigned val){
     unsigned row_idx = x;
 
