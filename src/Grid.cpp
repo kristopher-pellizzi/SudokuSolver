@@ -166,6 +166,7 @@ void Grid::init(string& grid_path){
 
     init_file.close();
     init_constraints();
+    check_initial_constraints();
 }
 
 std::set<unsigned>& Grid::get_available_vals(unsigned x, unsigned y){
@@ -259,7 +260,7 @@ unsigned Grid::simulate_add_constraint(unsigned x, unsigned y, unsigned val){
     return std::min(std::min(line, column), block);
 }
 
-std::set<Coordinates> Grid::get_row_adjacent_cells(const Coordinates& c){
+std::set<Coordinates> Grid::get_row_adjacent_cells(const Coordinates& c) const{
     unsigned c_x = c.get_x();
     unsigned c_y = c.get_y();
     std::set<Coordinates> ret;
@@ -272,7 +273,7 @@ std::set<Coordinates> Grid::get_row_adjacent_cells(const Coordinates& c){
     return ret;
 }
 
-std::set<Coordinates> Grid::get_col_adjacent_cells(const Coordinates& c){
+std::set<Coordinates> Grid::get_col_adjacent_cells(const Coordinates& c) const{
     unsigned c_x = c.get_x();
     unsigned c_y = c.get_y();
     std::set<Coordinates> ret;
@@ -285,7 +286,7 @@ std::set<Coordinates> Grid::get_col_adjacent_cells(const Coordinates& c){
     return ret;
 }
 
-std::set<Coordinates> Grid::get_block_adjacent_cells(const Coordinates& c){
+std::set<Coordinates> Grid::get_block_adjacent_cells(const Coordinates& c) const{
     std::set<Coordinates> ret;
     unsigned c_x = c.get_x();
     unsigned c_y = c.get_y();
@@ -306,6 +307,36 @@ std::set<Coordinates> Grid::get_block_adjacent_cells(const Coordinates& c){
     }
 
     return ret;
+}
+
+void Grid::check_initial_constraints() const{
+    unsigned grid_width = block_width * block_width;
+    
+    for(unsigned i = 0; i < grid_width; ++i){
+        for(unsigned j = 0; j < grid_width; ++j){
+            Coordinates c(i, j);
+            unsigned val = get(c.get_x(), c.get_y());
+            if (val == 0)
+                continue;
+
+            std::set<Coordinates> adjacent_cells = get_row_adjacent_cells(c);
+            std::set<Coordinates> col = get_col_adjacent_cells(c);
+            std::set<Coordinates> block = get_block_adjacent_cells(c);
+            adjacent_cells.insert(col.begin(), col.end());
+            adjacent_cells.insert(block.begin(), block.end());
+
+            for(auto iter = adjacent_cells.begin(); iter != adjacent_cells.end(); ++iter){
+                unsigned iter_val = get(iter->get_x(), iter->get_y());
+
+                if (iter_val == val){
+                    std::stringstream sstream;
+                    sstream << "Initial state of the grid is infeasible:" << std::endl;
+                    sstream << "Cell " << iter->to_string() << " has the same value (" << val << ") as cell " << c.to_string() << std::endl;
+                    v->error(sstream.str());
+                }
+            }
+        }
+    }
 }
 
 void Grid::set_hidden_single(const Coordinates& c, unsigned val){

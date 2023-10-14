@@ -46,9 +46,10 @@ class Grid {
         std::set<unsigned>& get_available_vals(const Coordinates& c);
         bool is_completed() const;
         unsigned simulate_add_constraint(unsigned x, unsigned y, unsigned val);
-        std::set<Coordinates> get_row_adjacent_cells(const Coordinates& c);
-        std::set<Coordinates> get_col_adjacent_cells(const Coordinates& c);
-        std::set<Coordinates> get_block_adjacent_cells(const Coordinates& c);
+        std::set<Coordinates> get_row_adjacent_cells(const Coordinates& c) const;
+        std::set<Coordinates> get_col_adjacent_cells(const Coordinates& c) const;
+        std::set<Coordinates> get_block_adjacent_cells(const Coordinates& c) const;
+        void check_initial_constraints() const;
         void set_hidden_single(const Coordinates& c, unsigned val);
 
         Cell* operator[](unsigned idx) const;
