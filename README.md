@@ -106,8 +106,13 @@ Indeed, there are only 2 possible cases:
 So, everytime a cell with a single available value is selected and a rollback is needed, the solver pops a checkpoint from the stack that restores the state to a choice preceding the selection of that cell, so that it is possible to perform a new choice that will hopefully lead to a different outcome.
 
 **Note** that a Cell Selection Checkpoint is meaningful only if there are no checkpoints in the stack.
+
 Indeed, if at least a checkpoint exists in the stack, the first one **MUST** be a cell selection checkpoint (there can't be a value selection checkpoint if a cell did not have more than a single available value).
+
 After the first cell is selected, if at any moment a cell *C* has no more available values or all the available values have been attempted for that cell, the grid would be infeasible.
+
 In such a situation, it would mean that all the possible values for cell *C* have been attempted, and none of them led to a solution.
+
 So, even if we try to fill other cells other than *C* first, *C* has still no chances to be filled. 
+
 Therefore, this means that we chose an incorrect value for the first chosen cell, or, if all the values have been attempted for that, that we need to choose another cell as the first to be filled.
