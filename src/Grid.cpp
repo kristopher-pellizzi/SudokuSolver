@@ -342,3 +342,36 @@ void Grid::check_initial_constraints() const{
 void Grid::set_hidden_single(const Coordinates& c, unsigned val){
     grid[c.get_x() * grid_width + c.get_y()].set_hidden_single(val);
 }
+
+void Grid::set_row_locked_candidates(unsigned block_idx, unsigned block_row_idx, const std::set<unsigned>& vals){
+    unsigned row_idx = block_idx / block_width * block_width + block_row_idx;
+    unsigned col_idx = (block_idx % block_width) * block_width;
+    unsigned grid_start_idx = row_idx * grid_width;
+
+    for(unsigned i = 0; i < grid_width; ++i){
+        // Do not remove vals from available_vals of the block where the locked candidate has been found
+        if (i >= col_idx && i < col_idx + block_width)
+            continue;
+            
+        unsigned idx = grid_start_idx + i;
+        for(auto iter = vals.begin(); iter != vals.end(); ++iter){
+            grid[idx].constrain(*iter);
+        }
+    }
+}
+
+void Grid::set_col_locked_candidates(unsigned block_idx, unsigned block_col_idx, const std::set<unsigned>& vals){
+    unsigned row_idx = block_idx / block_width * block_width;
+    unsigned col_idx = (block_idx % block_width) * block_width + block_col_idx;
+
+    for(unsigned i = 0; i < grid_width; ++i){
+        if (i >= row_idx && i < row_idx + block_width)
+            continue;
+
+        unsigned idx = i * grid_width + col_idx;
+
+        for(auto iter = vals.begin(); iter != vals.end(); ++iter){
+            grid[idx].constrain(*iter);
+        }
+    }
+}

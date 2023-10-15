@@ -51,6 +51,8 @@ class Grid {
         std::set<Coordinates> get_block_adjacent_cells(const Coordinates& c) const;
         void check_initial_constraints() const;
         void set_hidden_single(const Coordinates& c, unsigned val);
+        void set_row_locked_candidates(unsigned block_idx, unsigned block_row_idx, const std::set<unsigned>& vals);
+        void set_col_locked_candidates(unsigned block_idx, unsigned block_col_idx, const std::set<unsigned>& vals);
 
         Cell* operator[](unsigned idx) const;
 };

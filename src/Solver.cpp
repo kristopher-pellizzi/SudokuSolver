@@ -4,7 +4,7 @@
 #include "CliView.h"
 #include "Solver.h"
 
-Solver::Solver(Grid& grid, View& view) : grid(grid), v(view), selected_cell(NULL), checkpoint_restored(false) {}
+Solver::Solver(Grid& grid, View& view) : grid(grid), v(view), selected_cell(NULL), candidate_locked(false), checkpoint_restored(false) {}
 
 void Solver::restore_last_checkpoint(){
     if (checkpoints.size() <= 0){
@@ -18,8 +18,12 @@ void Solver::restore_last_checkpoint(){
     checkpoint->restore(grid);
     attempted_coords.clear();
     attempted_vals.clear();
+    row_locked_candidates.clear();
+    col_locked_candidates.clear();
     attempted_coords.insert(checkpoint->attempted_coords.begin(), checkpoint->attempted_coords.end());
     attempted_vals.insert(checkpoint->attempted_vals.begin(), checkpoint->attempted_vals.end());
+    row_locked_candidates.insert(checkpoint->row_locked_candidates.begin(), checkpoint->row_locked_candidates.end());
+    col_locked_candidates.insert(checkpoint->col_locked_candidates.begin(), checkpoint->col_locked_candidates.end());
 
     if (checkpoint->selected_coord == NULL)
         selected_cell = NULL;
@@ -92,6 +96,147 @@ Coordinates* Solver::search_hidden_single(){
     }
 
     return NULL;
+}
+
+bool Solver::try_lock_row_candidates(unsigned block_idx, unsigned first_row_idx, const std::set<Coordinates>& block_cells){
+    unsigned block_width = grid.get_block_width();
+    std::set<Coordinates> block_rows[block_width];
+    std::set<unsigned> rows_vals[block_width];
+
+    for(auto iter = block_cells.begin(); iter != block_cells.end(); ++iter){
+        block_rows[iter->get_x() % block_width].insert(*iter);
+    }
+
+    // Iterate for each row
+    for(unsigned i = 0; i < block_width; ++i){
+        std::set<unsigned> row_available_vals;
+
+        for(auto row_iter = block_rows[i].begin(); row_iter != block_rows[i].end(); ++row_iter){
+            std::set<unsigned> iter_avail_vals = grid.get_available_vals(*row_iter);
+            row_available_vals.insert(iter_avail_vals.begin(), iter_avail_vals.end());
+        }
+
+        rows_vals[i] = row_available_vals;
+    }
+
+    for(unsigned i = 0; i < block_width; ++i){
+        // If this row has already locked values in this block, ignore it
+        if(row_locked_candidates.find(LockedCandidateIndex(block_idx, i)) != row_locked_candidates.end())
+            continue;
+
+        std::set<unsigned> diff;
+        diff.insert(rows_vals[i].begin(), rows_vals[i].end());
+
+        for(unsigned j = 0; j < block_width; ++j){
+            if (i == j)
+                continue;
+
+            for(auto iter = rows_vals[j].begin(); iter != rows_vals[j].end(); ++iter){
+                diff.erase(*iter);
+            }
+        }
+
+        if (diff.size() > 0){
+            candidate_locked = true;
+            row_locked_candidates.insert(LockedCandidateIndex(block_idx, i));
+            grid.set_row_locked_candidates(block_idx, i, diff);
+
+            std::stringstream sstream;
+
+            sstream << (diff.size() > 1 ? "Values " : "Value ");
+            for(auto iter = diff.begin(); iter != (--diff.end()); ++iter){
+                sstream << *iter << ", ";
+            }
+            sstream << *(--diff.end()) << " can only be inserted in row " << i << " of block " << block_idx << std::endl;
+            v.message(sstream.str());
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Solver::try_lock_col_candidates(unsigned block_idx, unsigned first_col_idx, const std::set<Coordinates>& block_cells){
+    unsigned block_width = grid.get_block_width();
+    std::set<Coordinates> block_cols[block_width];
+    std::set<unsigned> cols_vals[block_width];
+
+    for(auto iter = block_cells.begin(); iter != block_cells.end(); ++iter){
+        block_cols[iter->get_y() % block_width].insert(*iter);
+    }
+
+    // Iterate for each col
+    for(unsigned i = 0; i < block_width; ++i){
+        std::set<unsigned> col_available_vals;
+
+        for(auto col_iter = block_cols[i].begin(); col_iter != block_cols[i].end(); ++col_iter){
+            std::set<unsigned> iter_avail_vals = grid.get_available_vals(*col_iter);
+            col_available_vals.insert(iter_avail_vals.begin(), iter_avail_vals.end());
+        }
+
+        cols_vals[i] = col_available_vals;
+    }
+
+    for(unsigned i = 0; i < block_width; ++i){
+        // If this column has already locked values in this block, ignore it
+        if(col_locked_candidates.find(LockedCandidateIndex(block_idx, i)) != col_locked_candidates.end())
+            continue;
+
+        std::set<unsigned> diff;
+        diff.insert(cols_vals[i].begin(), cols_vals[i].end());
+
+        for(unsigned j = 0; j < block_width; ++j){
+            if (i == j)
+                continue;
+
+            for(auto iter = cols_vals[j].begin(); iter != cols_vals[j].end(); ++iter){
+                diff.erase(*iter);
+            }
+        }
+
+        if (diff.size() > 0){
+            candidate_locked = true;
+            col_locked_candidates.insert(LockedCandidateIndex(block_idx, i));
+            grid.set_col_locked_candidates(block_idx, i, diff);
+
+            std::stringstream sstream;
+
+            sstream << (diff.size() > 1 ? "Values " : "Value ");
+            for(auto iter = diff.begin(); iter != (--diff.end()); ++iter){
+                sstream << *iter << ", ";
+            }
+            sstream << *(--diff.end()) << " can only be inserted in col " << i << " of block " << block_idx << std::endl;
+            v.message(sstream.str());
+
+            return true;
+        }
+    }
+
+    return false;
+}
+
+bool Solver::try_lock_candidates(){
+    unsigned block_width = grid.get_block_width();
+    
+    for(unsigned i = 0; i < block_width; ++i){
+        for(unsigned j = 0; j < block_width; ++j){
+            Coordinates c(i * block_width, j * block_width);
+            unsigned block_idx = i * block_width + j;
+
+            // Get all the cells belonging to this block
+            std::set<Coordinates> block_cells = grid.get_block_adjacent_cells(c);
+            block_cells.insert(c);
+
+            // Avoid attempting to lock col candidates if a row candidate has already been locked
+            if (try_lock_row_candidates(block_idx, i, block_cells))
+                return true;
+
+            if (try_lock_col_candidates(block_idx, j, block_cells))
+                return true;
+        }
+    }
+    return false;
 }
 
 Coordinates Solver::select_cell() {
@@ -169,6 +314,9 @@ Coordinates Solver::select_cell() {
         }
     }
 
+    if (min_available_vals > 1 && try_lock_candidates())
+        return selected;
+
     /*
         Cell selection checkpoints are meaningful only in case the checkpoint stack is empty.
         In case it is not, indeed, if at a certain point any cell will have no more available values,
@@ -188,6 +336,8 @@ Coordinates Solver::select_cell() {
         Checkpoint* checkpoint = new Checkpoint(grid);
         checkpoint->attempted_coords.insert(attempted_coords.begin(), attempted_coords.end());
         checkpoint->attempted_coords.insert(selected);
+        checkpoint->row_locked_candidates.insert(row_locked_candidates.begin(), row_locked_candidates.end());
+        checkpoint->col_locked_candidates.insert(col_locked_candidates.begin(), col_locked_candidates.end());
         checkpoints.push(checkpoint);
     }
 
@@ -281,28 +431,30 @@ void Solver::solve() {
         unsigned val = 0;
 
         /*
-            Select a value for the cell only if the cell selection did not 
-            perform a checkpoint restore
+            Select a value for the cell only if a candidate has not been
+            locked AND the cell selection did not perform a checkpoint restore
         */
-        if (!checkpoint_restored)
+        if (!candidate_locked && !checkpoint_restored)
             val = select_val(c);
 
-        // If a checkpoint was restored during cell or value selection, no cell must be set
-        if (!checkpoint_restored){
+        // If a candidate has been locked or a checkpoint was restored during cell or value selection, no cell must be set
+        if (!candidate_locked && !checkpoint_restored){
             grid.set(c, val);
             attempted_coords.clear();
             attempted_vals.clear();
+            row_locked_candidates.clear();
+            col_locked_candidates.clear();
             if (selected_cell != NULL){
                 delete selected_cell;
                 selected_cell = NULL;
             }
         }
 
+        candidate_locked = false;
         checkpoint_restored = false;
         v.draw();
 
-        std::string s;
-        //std::cin >> s;
+        std::cin.get();
     }
 
     sstream.str("");
@@ -310,4 +462,5 @@ void Solver::solve() {
     sstream << "Here's the solution" << std::endl;
     v.message(sstream.str());
     v.draw();
+    clean();
 }
