@@ -454,7 +454,7 @@ void Solver::solve() {
         checkpoint_restored = false;
         v.draw();
 
-        std::cin.get();
+        // std::cin.get();
     }
 
     sstream.str("");
