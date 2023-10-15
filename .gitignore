@@ -4,6 +4,7 @@ test_solver
 cli_test
 init.txt
 log.txt
+logs/**
 **/.DS_Store
 github_push_token.txt
 **/.vscode
