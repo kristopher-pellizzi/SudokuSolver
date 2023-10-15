@@ -46,7 +46,7 @@ First, it will always select a cell that has only 1 possible value available.
 
 In case there is none, the solver looks for a **Hidden Single**, that is a cell that theoretically has more than a single available value, but that due to the constraints in the grid related to other rows or columns, it is also the **only cell in its block** that can hold a certain value.
 
-**Hidden Single Example**:
+### Hidden Single Example
 ```
 ┏━┯━┯━┳━┯━┯━┳━┯━┯━┓
 ┃ │4│5┃ │3│ ┃1│7│ ┃
@@ -80,7 +80,7 @@ This is a sort of extension of hidden singles, where the solver tries to detect 
 
 This may allow to find a single value or a Hidden Single cell in subsequent steps.
 
-**Locked Candidates Example**
+### Locked Candidates Example
 ```
 ┏━┯━┯━┳━┯━┯━┳━┯━┯━┓
 ┃ │4│5┃ │3│ ┃1│7│ ┃
