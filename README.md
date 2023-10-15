@@ -112,7 +112,9 @@ Let's consider block 0.
 Cell (0, 0) can't hold value 1, as cell (0, 6) already holds it.
 Similarly, cell (2, 2) can't hold value 1, as cell (2, 4) already holds it.
 Therefore, the only row in block 0 that can hold value 1 is row 1.
-In this case, no value is set in the grid, but a constraint is added to all the cells belonging to row 1 of the grid (e.g. (1, 3), (1, 5), (1, 8), etc..), thus removing value 1 from their available values.
+In this case, no value is set in the grid, but a constraint is added to all the 
+cells belonging to row 1 of the grid (e.g. (1, 3), (1, 5), (1, 8), etc..), thus 
+removing value 1 from their available values.
 ```
 
 Finally, if neither a locked candidate is found, the solver selects the cell with the fewest number of possible values.
