@@ -43,7 +43,9 @@ Moreover, by selecting a value for a less constrained cell, we may constrain eve
 So, in the **Cell Selection Phase**, the solver will select one of the cells with more constraints.
 
 First, it will always select a cell that has only 1 possible value available.
+
 In case there is none, the solver looks for a **Hidden Single**, that is a cell that theoretically has more than a single available value, but that due to the constraints in the grid related to other rows or columns, it is also the **only cell in its block** that can hold a certain value.
+
 **Hidden Single Example**:
 ```
 ┏━┯━┯━┳━┯━┯━┳━┯━┯━┓
@@ -73,8 +75,11 @@ Therefore cell (1, 5) is the only one that can hold value 4 in its block (block 
 ```
 
 If no Hidden Single is found either, the solver tries to look for **Locked Candidates**.
+
 This is a sort of extension of hidden singles, where the solver tries to detect values that can only be set to a certain row or column of a block, so that it can add constraints to other adjacent cells without actually setting any value.
+
 This may allow to find a single value or a Hidden Single cell in subsequent steps.
+
 **Locked Candidates Example**
 ```
 ┏━┯━┯━┳━┯━┯━┳━┯━┯━┓
@@ -105,6 +110,7 @@ In this case, no value is set in the grid, but a constraint is added to all the 
 ```
 
 Finally, if neither a locked candidate is found, the solver selects the cell with the fewest number of possible values.
+
 The first detected one is selected in case of a tie.
 
 More information about MCV is available [here](https://stanford.edu/~shervine/teaching/cs-221/cheatsheet-variables-models#dynamic-ordering).
