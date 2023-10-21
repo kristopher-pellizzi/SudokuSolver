@@ -7,11 +7,16 @@
 Grid::Grid(unsigned block_width) : 
     block_width(block_width), 
     grid_width(block_width * block_width),
-    filled_cells(0)
+    filled_cells(0),
+    constraints_initialized(false)
 {
     unsigned total_size = grid_width * grid_width;
 
     grid = (Cell*) calloc(total_size, sizeof(Cell));
+    
+    for(unsigned i = 0; i < total_size; ++i){
+        grid[i] = Cell(0, grid_width);
+    }
 }
 
 void Grid::set_view(View& view){
@@ -129,6 +134,9 @@ void Grid::set(Coordinates& c, unsigned val){
 }
 
 void Grid::init_constraints(){
+    if (constraints_initialized)
+        return;
+
     v->message("Initializing grid constraints...");
     unsigned idx_limit = grid_width * grid_width;
 
@@ -142,6 +150,8 @@ void Grid::init_constraints(){
             ++filled_cells;
         } 
     }
+
+    constraints_initialized = true;
 }
 
 void Grid::init(string& grid_path){

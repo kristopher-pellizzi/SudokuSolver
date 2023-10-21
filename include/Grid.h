@@ -13,6 +13,7 @@ class Grid {
         const unsigned block_width;
         const unsigned grid_width;
         unsigned filled_cells;
+        bool constraints_initialized;
         Cell* grid;
         View* v;
 
@@ -21,7 +22,6 @@ class Grid {
         void constrain_column(unsigned y, unsigned val);
         void constrain_block(unsigned x, unsigned y, unsigned val);
         void add_constraint(unsigned x, unsigned y, unsigned val);
-        void init_constraints();
 
         // Simulate add constraints methods
         unsigned simulate_constrain_line(unsigned x, unsigned val);
@@ -42,6 +42,7 @@ class Grid {
         unsigned get(Coordinates& c) const;
         void set(Coordinates& c, unsigned val);
         void init(string& grid_path);
+        void init_constraints();
         std::set<unsigned>& get_available_vals(unsigned x, unsigned y);
         std::set<unsigned>& get_available_vals(const Coordinates& c);
         bool is_completed() const;
