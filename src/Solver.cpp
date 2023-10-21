@@ -4,7 +4,7 @@
 #include "CliView.h"
 #include "Solver.h"
 
-Solver::Solver(Grid& grid, View& view) : grid(grid), v(view), selected_cell(NULL), candidate_locked(false), checkpoint_restored(false) {}
+Solver::Solver(Grid& grid, View& view, bool quiet_mode_enabled) : grid(grid), v(view), selected_cell(NULL), candidate_locked(false), checkpoint_restored(false), quiet_mode_enabled(quiet_mode_enabled) {}
 
 void Solver::restore_last_checkpoint(){
     if (checkpoints.size() <= 0){
@@ -141,14 +141,16 @@ bool Solver::try_lock_row_candidates(unsigned block_idx, unsigned first_row_idx,
             row_locked_candidates.insert(LockedCandidateIndex(block_idx, i));
             grid.set_row_locked_candidates(block_idx, i, diff);
 
-            std::stringstream sstream;
+            if (!quiet_mode_enabled){
+                std::stringstream sstream;
 
-            sstream << (diff.size() > 1 ? "Values " : "Value ");
-            for(auto iter = diff.begin(); iter != (--diff.end()); ++iter){
-                sstream << *iter << ", ";
+                sstream << (diff.size() > 1 ? "Values " : "Value ");
+                for(auto iter = diff.begin(); iter != (--diff.end()); ++iter){
+                    sstream << *iter << ", ";
+                }
+                sstream << *(--diff.end()) << " can only be inserted in row " << i << " of block " << block_idx << std::endl;
+                v.message(sstream.str());
             }
-            sstream << *(--diff.end()) << " can only be inserted in row " << i << " of block " << block_idx << std::endl;
-            v.message(sstream.str());
 
             return true;
         }
@@ -200,14 +202,16 @@ bool Solver::try_lock_col_candidates(unsigned block_idx, unsigned first_col_idx,
             col_locked_candidates.insert(LockedCandidateIndex(block_idx, i));
             grid.set_col_locked_candidates(block_idx, i, diff);
 
-            std::stringstream sstream;
+            if (!quiet_mode_enabled){
+                std::stringstream sstream;
 
-            sstream << (diff.size() > 1 ? "Values " : "Value ");
-            for(auto iter = diff.begin(); iter != (--diff.end()); ++iter){
-                sstream << *iter << ", ";
+                sstream << (diff.size() > 1 ? "Values " : "Value ");
+                for(auto iter = diff.begin(); iter != (--diff.end()); ++iter){
+                    sstream << *iter << ", ";
+                }
+                sstream << *(--diff.end()) << " can only be inserted in col " << i << " of block " << block_idx << std::endl;
+                v.message(sstream.str());
             }
-            sstream << *(--diff.end()) << " can only be inserted in col " << i << " of block " << block_idx << std::endl;
-            v.message(sstream.str());
 
             return true;
         }
@@ -258,9 +262,11 @@ Coordinates Solver::select_cell() {
         Try restoring the last checkpoint.
     */
     if ((attempted_coords.size() + grid.get_filled_cells()) == grid_width * grid_width){
-        std::stringstream sstream;
-        sstream << "All coords have been attempted. Restoring last checkpoint...";
-        v.message(sstream.str());
+        if (!quiet_mode_enabled){
+            std::stringstream sstream;
+            sstream << "All coords have been attempted. Restoring last checkpoint...";
+            v.message(sstream.str());
+        }
 
         restore_last_checkpoint();
         return selected;
@@ -281,10 +287,12 @@ Coordinates Solver::select_cell() {
                 Try restoring the last checkpoint and proceed from there
             */
             if(available_vals.size() <= 0 && !grid.is_filled(i, j)){
-                std::stringstream sstream;
-                sstream << "Cell " << c.to_string() << " has no more available values" << std::endl;
-                sstream << "Current state is unsolvable. Restoring last checkpoint...";
-                v.message(sstream.str());
+                if (!quiet_mode_enabled){
+                    std::stringstream sstream;
+                    sstream << "Cell " << c.to_string() << " has no more available values" << std::endl;
+                    sstream << "Current state is unsolvable. Restoring last checkpoint...";
+                    v.message(sstream.str());
+                }
 
                 restore_last_checkpoint();                
                 return selected;
@@ -305,9 +313,11 @@ Coordinates Solver::select_cell() {
     if (min_available_vals > 1){
         Coordinates* hidden_single = search_hidden_single();
         if (hidden_single != NULL){
-            std::stringstream sstream;
-            sstream << "Cell " << hidden_single->to_string() << " is an hidden single, so it is selected" << std::endl;
-            v.message(sstream.str());
+            if (!quiet_mode_enabled){
+                std::stringstream sstream;
+                sstream << "Cell " << hidden_single->to_string() << " is an hidden single, so it is selected" << std::endl;
+                v.message(sstream.str());
+            }
             selected = Coordinates(*hidden_single);
             min_available_vals = 1;
             delete hidden_single;
@@ -332,7 +342,8 @@ Coordinates Solver::select_cell() {
     std::stringstream sstream;
     if (checkpoints.size() == 0 && min_available_vals > 1){
         sstream << "Creating checkpoint after choosing cell " << selected.to_string();
-        v.message(sstream.str());
+        if (!quiet_mode_enabled)
+            v.message(sstream.str());
         Checkpoint* checkpoint = new Checkpoint(grid);
         checkpoint->attempted_coords.insert(attempted_coords.begin(), attempted_coords.end());
         checkpoint->attempted_coords.insert(selected);
@@ -343,7 +354,8 @@ Coordinates Solver::select_cell() {
 
     sstream.str("");
     sstream << "Selected most constrained cell (" << min_available_vals << " constraints) with coordinates " << selected.to_string();
-    v.message(sstream.str());
+    if (!quiet_mode_enabled)
+        v.message(sstream.str());
 
     return selected;
 }
@@ -355,9 +367,11 @@ unsigned Solver::select_val(Coordinates& c) {
     std::set<unsigned>& available_vals = grid.get_available_vals(c);
 
     if (attempted_vals.size() == available_vals.size()){
-        std::stringstream sstream;
-        sstream << "All values have been attempted for this cell. Restoring last checkpoint...";
-        v.message(sstream.str());
+        if (!quiet_mode_enabled){
+            std::stringstream sstream;
+            sstream << "All values have been attempted for this cell. Restoring last checkpoint...";
+            v.message(sstream.str());
+        }
 
         restore_last_checkpoint();
         return selected_val;
@@ -365,9 +379,11 @@ unsigned Solver::select_val(Coordinates& c) {
 
     if (available_vals.size() == 1){
         selected_val = *available_vals.begin();
-        std::stringstream sstream;
-        sstream << "Selected value " << selected_val << " as it is the only one possible";
-        v.message(sstream.str());
+        if (!quiet_mode_enabled){
+            std::stringstream sstream;
+            sstream << "Selected value " << selected_val << " as it is the only one possible";
+            v.message(sstream.str());
+        }
         return selected_val;
     }
 
@@ -378,10 +394,12 @@ unsigned Solver::select_val(Coordinates& c) {
         unsigned min_constraints_num = grid.simulate_add_constraint(c.get_x(), c.get_y(), *iter);
 
         if (min_constraints_num == 0){
-            std::stringstream sstream;
-            sstream << "By setting value " << *iter << " to this cell, another cell would have no more available values" << std::endl;
-            sstream << "Restoring last checkpoint...";
-            v.message(sstream.str());
+            if (!quiet_mode_enabled){
+                std::stringstream sstream;
+                sstream << "By setting value " << *iter << " to this cell, another cell would have no more available values" << std::endl;
+                sstream << "Restoring last checkpoint...";
+                v.message(sstream.str());
+            }
 
             restore_last_checkpoint();
             return selected_val;
@@ -398,7 +416,8 @@ unsigned Solver::select_val(Coordinates& c) {
     if (available_vals.size() - attempted_vals.size() > 1){
         // Create and push a new checkpoint. Remove the current value from available values in the checkpoint
         sstream << "Creating checkpoint after choosing value " << selected_val;
-        v.message(sstream.str());
+        if (!quiet_mode_enabled)
+            v.message(sstream.str());
         Checkpoint* checkpoint = new Checkpoint(grid);
         checkpoint->attempted_vals.insert(attempted_vals.begin(), attempted_vals.end());
         checkpoint->attempted_vals.insert(selected_val);
@@ -408,7 +427,8 @@ unsigned Solver::select_val(Coordinates& c) {
 
     sstream.str("");
     sstream << "Selected value " << selected_val << " as it is the less constraining value";
-    v.message(sstream.str());
+    if (!quiet_mode_enabled)
+        v.message(sstream.str());
 
     return selected_val;
 }
@@ -424,7 +444,8 @@ void Solver::clean(){
 void Solver::solve() {
     std::stringstream sstream;
     sstream << "Start solving the grid...";
-    v.message(sstream.str());
+    if (!quiet_mode_enabled)
+        v.message(sstream.str());
 
     while (!grid.is_completed()){
         Coordinates&& c = select_cell();
@@ -452,7 +473,8 @@ void Solver::solve() {
 
         candidate_locked = false;
         checkpoint_restored = false;
-        v.draw();
+        if (!quiet_mode_enabled)
+            v.draw();
 
         // std::cin.get();
     }
@@ -460,7 +482,9 @@ void Solver::solve() {
     sstream.str("");
     sstream << "Grid has been completely filled." << std::endl;
     sstream << "Here's the solution" << std::endl;
-    v.message(sstream.str());
-    v.draw();
+    if (!quiet_mode_enabled){
+        v.message(sstream.str());
+        v.draw();
+    }
     clean();
 }

@@ -21,6 +21,7 @@ class Solver{
         Coordinates* selected_cell;
         bool candidate_locked;
         bool checkpoint_restored;
+        bool quiet_mode_enabled;
 
         Coordinates* do_search_hidden_single(const Coordinates& c, std::set<Coordinates>& adjacent_cells);
         Coordinates* search_row_hidden_single(const Coordinates& c);
@@ -36,8 +37,7 @@ class Solver{
         void clean();
 
     public:
-        Solver(Grid& grid, View& view);
-
+        Solver(Grid& grid, View& view, bool quiet_mode_enabled = false);
         
         void solve();
 };
