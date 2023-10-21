@@ -65,7 +65,11 @@ $(OBJ_DIR)TestSolver.o: $(SRC_DIR)TestSolver.cpp $(INCLUDE_DIR)Solver.h | $(OBJ_
 $(OBJ_DIR)Checkpoint.o: $(SRC_DIR)Checkpoint.cpp $(INCLUDE_DIR)Checkpoint.h | $(OBJ_DIR)
 	$(CXX) $(COMP_FLAGS) $< -o $@
 
-$(ROOT_DIR)/CppArgumentParser/lib/libArgumentParser.so:
+$(ROOT_DIR)/CppArgumentParser/lib/libArgumentParser.so: argparse
+	@echo
+
+.PHONY: argparse
+argparse:
 	$(MAKE) -C CppArgumentParser
 
 solver: $(OBJ_DIR)CliMain.o $(OBJ_DIR)Checkpoint.o $(OBJ_DIR)LockedCandidateIndex.o $(OBJ_DIR)Solver.o $(OBJ_DIR)Grid.o $(OBJ_DIR)PathGridInitializer.o $(OBJ_DIR)RandomGridInitializer.o $(OBJ_DIR)View.o $(OBJ_DIR)CliView.o $(OBJ_DIR)Cell.o $(OBJ_DIR)Coordinates.o
