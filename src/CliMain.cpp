@@ -3,6 +3,7 @@
 #include "Solver.h"
 #include "ArgumentParser.h"
 #include "PathGridInitializer.h"
+#include "RandomGridInitializer.h"
 
 using namespace AP;
 
@@ -12,9 +13,9 @@ ArgumentsMap parse_args(int argc, char* argv[]){
     parser.add_argument(
         NamedArgument<string>("name", "--grid-path"),
         NamedArgument<string>("abbreviation", "-p"),
-        NamedArgument<string>("help_string", "Path of a text file describing the initial state of the Sudoku grid (see files in folder \"grids\" for reference)"),
+        NamedArgument<string>("help_string", "Path of a text file describing the initial state of the Sudoku grid (see files in folder \"grids\" for reference). If a path is not provided, a random grid will be generated"),
         NamedArgument<string>("dest", "path"),
-        NamedArgument<bool>("is_required", true)
+        NamedArgument<string*>("default_val", new string(""))
     );
 
     parser.add_argument(
@@ -40,7 +41,13 @@ int main(int argc, char* argv[]){
     Grid grid(block_width);    
     CliView v(grid);
     grid.set_view(v);
-    IGridInitializer* initializer = new PathGridInitializer(grid_path, &v);
+
+    IGridInitializer* initializer;
+    if (grid_path != "")
+        initializer = new PathGridInitializer(grid_path, &v);
+    else   
+        initializer = new RandomGridInitializer(&v);
+
     initializer->init(grid);
     v.draw();
 
