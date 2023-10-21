@@ -41,6 +41,9 @@ $(OBJ_DIR)PathGridInitializer.o: $(SRC_DIR)PathGridInitializer.cpp $(INCLUDE_DIR
 $(OBJ_DIR)RandomGridInitializer.o: $(SRC_DIR)RandomGridInitializer.cpp $(INCLUDE_DIR)RandomGridInitializer.h | $(OBJ_DIR)
 	$(CXX) $(COMP_FLAGS) $< -o $@
 
+$(OBJ_DIR)RandomNumberGenerator.o: $(SRC_DIR)RandomNumberGenerator.cpp $(INCLUDE_DIR)RandomNumberGenerator.h | $(OBJ_DIR)
+	$(CXX) $(COMP_FLAGS) $< -o $@
+
 $(OBJ_DIR)Cell.o: $(SRC_DIR)Cell.cpp $(INCLUDE_DIR)Cell.h | $(OBJ_DIR)
 	$(CXX) $(COMP_FLAGS) $< -o $@
 
@@ -72,11 +75,11 @@ $(ROOT_DIR)/CppArgumentParser/lib/libArgumentParser.so: argparse
 argparse:
 	$(MAKE) -C CppArgumentParser
 
-solver: $(OBJ_DIR)CliMain.o $(OBJ_DIR)Checkpoint.o $(OBJ_DIR)LockedCandidateIndex.o $(OBJ_DIR)Solver.o $(OBJ_DIR)Grid.o $(OBJ_DIR)PathGridInitializer.o $(OBJ_DIR)RandomGridInitializer.o $(OBJ_DIR)View.o $(OBJ_DIR)CliView.o $(OBJ_DIR)Cell.o $(OBJ_DIR)Coordinates.o
+solver: $(OBJ_DIR)CliMain.o $(OBJ_DIR)Checkpoint.o $(OBJ_DIR)LockedCandidateIndex.o $(OBJ_DIR)Solver.o $(OBJ_DIR)Grid.o $(OBJ_DIR)PathGridInitializer.o $(OBJ_DIR)RandomGridInitializer.o $(OBJ_DIR)RandomNumberGenerator.o $(OBJ_DIR)View.o $(OBJ_DIR)CliView.o $(OBJ_DIR)Cell.o $(OBJ_DIR)Coordinates.o
 	$(CXX) -L$(ROOT_DIR)/CppArgumentParser/lib -lArgumentParser $^ -o $@
 
 # Uses an alternative solver class that allows to debug checkpointing system
-test_solver: $(OBJ_DIR)CliMain.o $(OBJ_DIR)Checkpoint.o $(OBJ_DIR)LockedCandidateIndex.o $(OBJ_DIR)TestSolver.o $(OBJ_DIR)Grid.o $(OBJ_DIR)PathGridInitialized $(OBJ_DIR)RandomGridInitializer $(OBJ_DIR)View.o $(OBJ_DIR)CliView.o $(OBJ_DIR)Cell.o $(OBJ_DIR)Coordinates.o
+test_solver: $(OBJ_DIR)CliMain.o $(OBJ_DIR)Checkpoint.o $(OBJ_DIR)LockedCandidateIndex.o $(OBJ_DIR)TestSolver.o $(OBJ_DIR)Grid.o $(OBJ_DIR)PathGridInitialized $(OBJ_DIR)RandomGridInitializer $(OBJ_DIR)RandomNumberGenerator.o $(OBJ_DIR)View.o $(OBJ_DIR)CliView.o $(OBJ_DIR)Cell.o $(OBJ_DIR)Coordinates.o
 	$(CXX) -L$(ROOT_DIR)/CppArgumentParser/lib -lArgumentParser $^ -o $@
 
 # Uses an alternative main function that simply prints the grid filled with numbers

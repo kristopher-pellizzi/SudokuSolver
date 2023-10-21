@@ -32,6 +32,5 @@ void PathGridInitializer::init(Grid& grid){
     }
 
     init_file.close();
-    grid.init_constraints();
     grid.check_initial_constraints();
 }

@@ -7,8 +7,7 @@
 Grid::Grid(unsigned block_width) : 
     block_width(block_width), 
     grid_width(block_width * block_width),
-    filled_cells(0),
-    constraints_initialized(false)
+    filled_cells(0)
 {
     unsigned total_size = grid_width * grid_width;
 
@@ -17,6 +16,37 @@ Grid::Grid(unsigned block_width) :
     for(unsigned i = 0; i < total_size; ++i){
         grid[i] = Cell(0, grid_width);
     }
+}
+
+Grid::Grid(const Grid& other) :
+    block_width(other.block_width),
+    grid_width(other.grid_width),
+    filled_cells(other.filled_cells)
+{
+    unsigned total_size = grid_width * grid_width;
+
+    grid = (Cell*) calloc(total_size, sizeof(Cell));
+    
+    for(unsigned i = 0; i < total_size; ++i){
+        grid[i] = Cell(other.grid[i]);
+    }
+}
+
+Grid& Grid::operator=(const Grid& other){
+    filled_cells = other.filled_cells;
+    unsigned total_size = grid_width * grid_width;
+
+    grid = (Cell*) calloc(total_size, sizeof(Cell));
+    
+    for(unsigned i = 0; i < total_size; ++i){
+        grid[i] = Cell(other.grid[i]);
+    }
+
+    return *this;
+}
+
+Grid::~Grid(){
+    free(grid);
 }
 
 void Grid::set_view(View& view){
@@ -131,52 +161,6 @@ void Grid::set(unsigned x, unsigned y, unsigned val){
 
 void Grid::set(Coordinates& c, unsigned val){
     set(c.get_x(), c.get_y(), val);
-}
-
-void Grid::init_constraints(){
-    if (constraints_initialized)
-        return;
-
-    v->message("Initializing grid constraints...");
-    unsigned idx_limit = grid_width * grid_width;
-
-    for (unsigned i = 0; i < idx_limit; ++i){
-        unsigned row_idx = i / grid_width;
-        unsigned col_idx = i % grid_width;
-
-        Cell c = grid[i];
-        if (c != 0){
-            add_constraint(row_idx, col_idx, c.get());
-            ++filled_cells;
-        } 
-    }
-
-    constraints_initialized = true;
-}
-
-void Grid::init(string& grid_path){
-    v->message("Initializing grid...");
-    std::ifstream init_file(grid_path);
-
-    for (int i = 0; i < grid_width; ++i){
-        for (int j = 0; j < grid_width; ++j){
-            unsigned val;
-            init_file >> val;
-            if (val < 0 || val > grid_width){
-                std::stringstream sstream;
-                sstream << "Invalid value " << val << "." << std::endl;
-                sstream << "Check initialization values.";
-                v->error(sstream.str());
-            }
-
-            unsigned index = i * grid_width + j;
-            grid[index] = Cell(val, grid_width);
-        }
-    }
-
-    init_file.close();
-    init_constraints();
-    check_initial_constraints();
 }
 
 std::set<unsigned>& Grid::get_available_vals(unsigned x, unsigned y){
