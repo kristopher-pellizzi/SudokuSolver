@@ -2,6 +2,7 @@
 #include "Grid.h"
 #include "Solver.h"
 #include "ArgumentParser.h"
+#include "PathGridInitializer.h"
 
 using namespace AP;
 
@@ -39,7 +40,8 @@ int main(int argc, char* argv[]){
     Grid grid(block_width);    
     CliView v(grid);
     grid.set_view(v);
-    grid.init(grid_path);
+    IGridInitializer* initializer = new PathGridInitializer(grid_path, &v);
+    initializer->init(grid);
     v.draw();
 
     Solver solver(grid, v);
