@@ -26,8 +26,15 @@ void PathGridInitializer::init(Grid& grid){
                 v->error(sstream.str());
             }
 
-            if (val != 0)
+            if (val != 0){
                 grid.set(i, j, val);
+                if (!grid.is_filled(i, j)){
+                    std::stringstream sstream;
+                    sstream << "Cannot set value " << val << " in cell (" << i << ", " << j << ")." << std::endl;
+                    sstream << "Grid is infeasible, please check the grid initialization file" << std::endl;
+                    v->error(sstream.str());
+                }
+            }
         }
     }
 
