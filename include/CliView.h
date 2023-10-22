@@ -40,7 +40,15 @@ class CliView : public View {
         Grid& grid;
         unsigned grid_width;
         unsigned block_width;
+        unsigned h_space;
+        unsigned digits;
 
+        unsigned get_num_digits(unsigned n) const;
+        string get_string_repr(unsigned n) const;
+        void insert_vertical_space(unsigned count = 1) const;
+        void insert_horizontal_space(unsigned count = 1) const;
+        void draw_col_coords() const;
+        void draw_row_coord(unsigned row_idx) const;
         void draw_top_line() const;
         void draw_bottom_line() const;
         void draw_cell_line(unsigned line_idx) const;

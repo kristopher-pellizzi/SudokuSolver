@@ -34,15 +34,62 @@ const string LIGHT_CROSS = "\u253c";
 CliView::CliView(Grid& grid) : grid(grid) {
     grid_width = grid.get_grid_width();
     block_width = grid.get_block_width();
+    digits = get_num_digits(grid_width);
+    h_space = 2 + digits;
+}
+
+unsigned CliView::get_num_digits(unsigned n) const{
+    unsigned count = 1;
+    unsigned curr = n / 10;
+
+    while (curr != 0){
+        curr /= 10;
+        ++count;
+    }
+
+    return count;
+}
+
+string CliView::get_string_repr(unsigned n) const{
+    unsigned n_digits = get_num_digits(n);
+
+    std::stringstream sstream;
+    sstream << std::string(digits - n_digits, ' ');
+    sstream << n;
+
+    return sstream.str();
+}
+
+void CliView::insert_vertical_space(unsigned count) const{
+    for(unsigned i = 0; i < count; ++i)
+        cout << endl;
+}
+
+void CliView::insert_horizontal_space(unsigned count) const{
+    cout << std::string(count, ' ');
+}
+
+void CliView::draw_col_coords() const{
+    insert_horizontal_space(h_space);
+    for(unsigned i = 0; i < grid_width; ++i){
+        cout << " " << get_string_repr(i);
+    }
+}
+
+void CliView::draw_row_coord(unsigned row_idx) const{
+    cout << get_string_repr(row_idx) << "  ";
 }
 
 void CliView::draw_top_line() const {
+    insert_horizontal_space(h_space);
+
     std::stringstream line;
 
     line << TL_ANGLE;
 
-    for (int i = 1; i < grid_width; ++i){
-        line << H_LINE;
+    for (unsigned i = 1; i < grid_width; ++i){
+        for(unsigned j = 0; j < digits; ++j)
+            line << H_LINE;
 
         if (i % block_width == 0)
             line << TOP_CROSS;
@@ -50,17 +97,23 @@ void CliView::draw_top_line() const {
             line << HL_TOP_CROSS;
     }
 
-    line << H_LINE << TR_ANGLE;
+    for (unsigned i = 0; i < digits; ++i)
+        line << H_LINE;
+
+    line << TR_ANGLE;
     cout << line.str() << endl;
 }
 
 void CliView::draw_bottom_line() const{
+    insert_horizontal_space(h_space);
+
     std::stringstream line;
 
     line << BL_ANGLE;
 
-    for (int i = 1; i < grid_width; ++i){
-        line << H_LINE;
+    for (unsigned i = 1; i < grid_width; ++i){
+        for (unsigned j = 0; j < digits; ++j)
+            line << H_LINE;
         
         if (i % block_width == 0)
             line << BOTTOM_CROSS;
@@ -68,19 +121,26 @@ void CliView::draw_bottom_line() const{
             line << HL_BOTTOM_CROSS;
     }
 
-    line << H_LINE << BR_ANGLE;
+    for (unsigned i = 0; i < digits; ++i)
+        line << H_LINE;
+    
+    line << BR_ANGLE;
     cout << line.str() << endl;
 }
 
 void CliView::draw_cell_line(unsigned line_idx) const{
+    draw_row_coord(line_idx);
+
     std::stringstream line;
     line << V_LINE;
 
-    for (int i = 1; i < grid_width; ++i){
-        if (grid[line_idx][i - 1] != 0)
-            line << grid[line_idx][i - 1];
+    for (unsigned i = 1; i < grid_width; ++i){
+        unsigned cell_cont = grid[line_idx][i - 1].get();
+
+        if (cell_cont != 0)
+            line << get_string_repr(cell_cont);
         else 
-            line << " ";
+            line << std::string(digits, ' ');
         
         if (i % block_width == 0)
             line << V_LINE;
@@ -88,16 +148,19 @@ void CliView::draw_cell_line(unsigned line_idx) const{
             line << LIGHT_V_LINE;
     }
 
-    if (grid[line_idx][grid_width - 1] != 0)
-        line << grid[line_idx][grid_width - 1];
+    unsigned cell_cont = grid[line_idx][grid_width - 1].get();
+    if (cell_cont != 0)
+        line << get_string_repr(cell_cont);
     else
-        line << " ";
+        line << std::string(digits, ' ');
 
     line << V_LINE;
     cout << line.str() << endl;
 }
 
 void CliView::draw_cell_separator(unsigned line_idx) const{
+    insert_horizontal_space(h_space);
+
     std::stringstream line;
     string H_LINE_CHAR;
     string LEFT_CROSS_CHAR;
@@ -122,8 +185,9 @@ void CliView::draw_cell_separator(unsigned line_idx) const{
 
     line << LEFT_CROSS_CHAR;
 
-    for (int i = 1; i < grid_width; ++i){
-        line << H_LINE_CHAR;
+    for (unsigned i = 1; i < grid_width; ++i){
+        for(unsigned j = 0; j < digits; ++j)
+            line << H_LINE_CHAR;
         
         if (i % block_width == 0) 
             line << (is_block_separator ? CROSS : HL_CROSS_LH);
@@ -131,14 +195,19 @@ void CliView::draw_cell_separator(unsigned line_idx) const{
             line << CROSS_CHAR;
     }
 
-    line << H_LINE_CHAR << RIGHT_CROSS_CHAR;
+    for(unsigned i = 0; i < digits; ++i)
+        line << H_LINE_CHAR;
+    
+    line << RIGHT_CROSS_CHAR;
     cout << line.str() << endl;
 }
 
 void CliView::draw() const{
+    draw_col_coords();
+    insert_vertical_space();
     draw_top_line();
 
-    for (int i = 0; i < grid_width - 1; ++i){
+    for (unsigned i = 0; i < grid_width - 1; ++i){
         draw_cell_line(i);
         draw_cell_separator(i);
     }
