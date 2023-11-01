@@ -63,6 +63,8 @@ class CliView : public View {
         void message(string msg) const override;
         void warning(string wrn) const override;
         void error(string err) const override;
+        void print (string s) const override;
+        std::istream& get_input_stream() override;
 };
 
 #endif //CLIVIEW

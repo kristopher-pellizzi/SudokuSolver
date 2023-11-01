@@ -286,3 +286,11 @@ void CliView::error(string err) const{
 
     exit(1);
 }
+
+void CliView::print(string s) const{
+    cout << s << endl;
+}
+
+std::istream& CliView::get_input_stream(){
+    return std::cin;
+}
