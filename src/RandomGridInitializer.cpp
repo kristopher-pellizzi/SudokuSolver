@@ -77,6 +77,7 @@ void RandomGridInitializer::init(Grid& grid){
             if (!grid.is_filled(c) && empty_coords.find(c) == empty_coords.end()){
                 unsigned sol_val = solution.get(x, y);
                 grid.set(x, y, sol_val);
+                grid.add_fixed_cell(c);
             }
         }
     }

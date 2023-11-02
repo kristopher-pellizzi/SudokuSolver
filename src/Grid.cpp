@@ -30,6 +30,8 @@ Grid::Grid(const Grid& other) :
     for(unsigned i = 0; i < total_size; ++i){
         grid[i] = Cell(other.grid[i]);
     }
+
+    fixed_cells.insert(other.fixed_cells.begin(), other.fixed_cells.end());
 }
 
 Grid& Grid::operator=(const Grid& other){
@@ -41,6 +43,8 @@ Grid& Grid::operator=(const Grid& other){
     for(unsigned i = 0; i < total_size; ++i){
         grid[i] = Cell(other.grid[i]);
     }
+
+    fixed_cells.insert(other.fixed_cells.begin(), other.fixed_cells.end());
 
     return *this;
 }
@@ -161,6 +165,14 @@ void Grid::set(unsigned x, unsigned y, unsigned val){
 
 void Grid::set(Coordinates& c, unsigned val){
     set(c.get_x(), c.get_y(), val);
+}
+
+std::set<Coordinates>& Grid::get_fixed_cells(){
+    return fixed_cells;
+}
+
+void Grid::add_fixed_cell(const Coordinates& c){
+    fixed_cells.insert(c);
 }
 
 std::set<unsigned>& Grid::get_available_vals(unsigned x, unsigned y){

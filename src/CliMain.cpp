@@ -49,7 +49,7 @@ int main(int argc, char* argv[]){
         initializer = new RandomGridInitializer(&v);
 
     initializer->init(grid);
-    v.draw();
+    v.draw(&grid);
 
     Solver solver(grid, v);
     solver.solve();

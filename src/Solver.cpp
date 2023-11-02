@@ -474,7 +474,7 @@ void Solver::solve() {
         candidate_locked = false;
         checkpoint_restored = false;
         if (!quiet_mode_enabled)
-            v.draw();
+            v.draw(&grid);
 
         // std::cin.get();
     }
@@ -484,7 +484,7 @@ void Solver::solve() {
     sstream << "Here's the solution" << std::endl;
     if (!quiet_mode_enabled){
         v.message(sstream.str());
-        v.draw();
+        v.draw(&grid);
     }
     clean();
 }

@@ -31,7 +31,11 @@ const string LIGHT_H_LINE = "\u2500";
 const string LIGHT_V_LINE = "\u2502";
 const string LIGHT_CROSS = "\u253c";
 
-CliView::CliView(Grid& grid) : grid(grid) {
+const string ANSI_RST  = "\x1b[0m";
+const string ANSI_BOLD = "\x1b[1m";
+const string ANSI_BLUE = "\x1b[34m";
+
+CliView::CliView(Grid& grid){
     grid_width = grid.get_grid_width();
     block_width = grid.get_block_width();
     digits = get_num_digits(grid_width);
@@ -130,17 +134,24 @@ void CliView::draw_bottom_line() const{
 
 void CliView::draw_cell_line(unsigned line_idx) const{
     draw_row_coord(line_idx);
+    std::set<Coordinates>& fixed_cells = grid->get_fixed_cells();
 
     std::stringstream line;
     line << V_LINE;
 
     for (unsigned i = 1; i < grid_width; ++i){
-        unsigned cell_cont = grid[line_idx][i - 1].get();
+        unsigned cell_cont = grid->get(line_idx, i - 1);
+        auto found = fixed_cells.find(Coordinates(line_idx, i - 1));
+        
+        if (found != fixed_cells.end())
+            line << ANSI_BOLD << ANSI_BLUE;
 
         if (cell_cont != 0)
             line << get_string_repr(cell_cont);
         else 
             line << std::string(digits, ' ');
+
+        line << ANSI_RST;
         
         if (i % block_width == 0)
             line << V_LINE;
@@ -148,11 +159,18 @@ void CliView::draw_cell_line(unsigned line_idx) const{
             line << LIGHT_V_LINE;
     }
 
-    unsigned cell_cont = grid[line_idx][grid_width - 1].get();
+    unsigned cell_cont = grid->get(line_idx, grid_width - 1);
+    auto found = fixed_cells.find(Coordinates(line_idx, grid_width - 1));
+
+    if (found != fixed_cells.end())
+        line << ANSI_BOLD << ANSI_BLUE;
+
     if (cell_cont != 0)
         line << get_string_repr(cell_cont);
     else
         line << std::string(digits, ' ');
+
+    line << ANSI_RST;
 
     line << V_LINE;
     cout << line.str() << endl;
@@ -202,7 +220,8 @@ void CliView::draw_cell_separator(unsigned line_idx) const{
     cout << line.str() << endl;
 }
 
-void CliView::draw() const{
+void CliView::draw(IGrid* grid){
+    this->grid = grid;
     draw_col_coords();
     insert_vertical_space();
     draw_top_line();
@@ -216,13 +235,14 @@ void CliView::draw() const{
     draw_bottom_line();
 }
 
-void CliView::print_constraints() const{
+void CliView::print_constraints(IGrid* grid) {
+    this->grid = grid;
     unsigned idx_limit = grid_width * grid_width;
 
     for(unsigned i = 0; i < idx_limit; ++i){
         unsigned row_idx = i / grid_width;
         unsigned col_idx = i % grid_width;
-        std::set<unsigned>& available_vals = grid[row_idx][col_idx].get_available_vals();
+        std::set<unsigned>& available_vals = grid->get_available_vals(row_idx, col_idx);
         cout << row_idx << "; " << col_idx << ": " << endl;
         cout << "SIZE: " << available_vals.size() << endl;
         for(auto iter = available_vals.begin(); iter != available_vals.end(); ++iter){

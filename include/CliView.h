@@ -2,6 +2,7 @@
 #define CLIVIEW
 
 #include "View.h"
+#include "IGrid.h"
 #include "Grid.h"
 #include <deque>
 #include <string>
@@ -37,7 +38,7 @@ extern const string LIGHT_CROSS;
 
 class CliView : public View {
     private:
-        Grid& grid;
+        IGrid* grid;
         unsigned grid_width;
         unsigned block_width;
         unsigned h_space;
@@ -58,8 +59,8 @@ class CliView : public View {
     public:
         CliView(Grid& grid);
 
-        void draw() const override;
-        void print_constraints() const override;
+        void draw(IGrid* grid) override;
+        void print_constraints(IGrid* grid) override;
         void message(string msg) const override;
         void warning(string wrn) const override;
         void error(string err) const override;

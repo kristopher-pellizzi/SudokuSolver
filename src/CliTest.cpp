@@ -5,7 +5,7 @@ int main(){
     unsigned block_width = 3;
     Grid grid(block_width);    
     CliView v(grid);
-    v.draw();
+    v.draw(&grid);
 
     unsigned grid_width = block_width * block_width;
     for (int i = 0; i < grid_width; i++){
@@ -14,7 +14,7 @@ int main(){
         }
     }
 
-    v.draw();
+    v.draw(&grid);
     
     return 0;
 }

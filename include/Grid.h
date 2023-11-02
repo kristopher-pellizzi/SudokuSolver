@@ -5,8 +5,9 @@
 #include "Cell.h"
 #include "Coordinates.h"
 #include "View.h"
+#include "IGrid.h"
 
-class Grid {
+class Grid : public IGrid{
     friend class Checkpoint;
 
     private:
@@ -15,6 +16,7 @@ class Grid {
         unsigned filled_cells;
         Cell* grid;
         View* v;
+        std::set<Coordinates> fixed_cells;
 
         int check_coordinates(unsigned x, unsigned y) const;
         void constrain_line(unsigned x, unsigned val);
@@ -38,6 +40,8 @@ class Grid {
         unsigned get_block_width();
         unsigned get_grid_width();
         unsigned get(unsigned x, unsigned y) const;
+        std::set<Coordinates>& get_fixed_cells();
+        void add_fixed_cell(const Coordinates& c);
         bool is_filled(unsigned x, unsigned y) const;
         bool is_filled(Coordinates& c) const;
         unsigned get_filled_cells() const;

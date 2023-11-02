@@ -28,6 +28,7 @@ void PathGridInitializer::init(Grid& grid){
 
             if (val != 0){
                 grid.set(i, j, val);
+                grid.add_fixed_cell(Coordinates(i, j));
                 if (!grid.is_filled(i, j)){
                     std::stringstream sstream;
                     sstream << "Cannot set value " << val << " in cell (" << i << ", " << j << ")." << std::endl;
